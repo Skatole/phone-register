@@ -8,7 +8,7 @@ const knex = require("knex")({
   },
 });
 
-const readline = require("readline-sync");
+const readline = require('readline-sync');
 //  chosing options
 
 const menuList = [
@@ -20,8 +20,8 @@ const menuList = [
   "Exit",
 ];
 
+const tableName = "phone_book";
 const menu = async () => {
-  const tableName = "phone_book";
   let name = "";
   let region = "";
   let number = 0;
@@ -35,9 +35,7 @@ const menu = async () => {
       break;
     //  searching:
     case menuList[index] === menuList[1]:
-      name = readline.question(
-        "Please tipe in the name of the person's number your are looking for:"
-      );
+      name = readline.question("Name of the number owner: ");
       await search(name);
       menu();
       break;
@@ -54,11 +52,13 @@ const menu = async () => {
       name = readline.question("Name of the number owner:");
       await search(name);
       question = readline.keyInYN("Is this what you are looking for?:");
+
       if (question === true) {
+        name = readline.question("Add a new name:");
         region = readline.question("Add a new region:");
-        number = readline.question("Add a new number");
+        number = readline.question("Add a new number:");
         await updateNumber(name, region, number);
-        await console.log(search(name));
+        await search(name);
         menu();
       } else if (question === false) {
         console.log(
@@ -67,8 +67,25 @@ const menu = async () => {
         menu();
       }
       break;
+    // delete number:
     case menuList[index] === menuList[4]:
-      console.log("5.");
+      name = readline.question(
+        "Which user you would like to delete? Enter name: "
+      );
+      await search(name);
+      question = readline.keyInYN(
+        "Are you sure you would like to delete this user?"
+      );
+      if (question === true) {
+        deleteNumber(name);
+        menu();
+      }
+      if (question === false) {
+        console.log(
+          "If you would like to try again press 5, if you would like to see all the users press 1"
+        );
+        menu();
+      }
       break;
     case menuList[index] === menuList[5]:
       process.exit();
@@ -79,40 +96,55 @@ const menu = async () => {
 
 // lists all of the numbers:
 const listAll = async () => {
-  const list = await knex.select().table("phone_book");
+  const list = await knex.select().table(tableName);
   console.log(list);
 };
 
 // search by name:
 
-const search = async (nameInput) => {
-  let searchResault = await knex
-    .where({ name: nameInput })
+const search = async (nameSearch) => {
+  // const variable = await knex(tableName).where({ name: nameSearch }).select('name');
+  const searchResault = await knex
+    .where({ name: nameSearch })
     .select()
-    .table("phone_book");
-  console.log(searchResault);
+    .table(tableName);
+    console.log(searchResault);
 };
 
 // add a new number:
 const insertNumber = async (name, region, number) => {
-  await knex("phone_book").insert({
+  await knex(tableName).insert({
     name: name,
     region: region,
     phone_number: number,
   });
-  let display = await knex.where({ name: name }).select().table("phone_book");
+  let display = await knex.where({ name: name }).select().table(tableName);
   console.log(display);
 };
 
-// alter a number:
+// update a number:
 
 const updateNumber = async (name, region, number) => {
-  const search = await knex.where({ name: name }).select().table("phone_book");
-  const update = await knex("phone_book").where({ name: name }).update({
-    name: name,
-    region: region,
-    phone_number: number,
-  });
+  try {
+    const updateName = await knex(tableName)
+      .where({ name: name })
+      .update({ name: name });
+    const updateregion = await knex(tableName)
+      .where({ name: name })
+      .update({ region: region });
+    const updateNumber = await knex(tableName)
+      .where({ name: name })
+      .update({ phone_number: number });
+  } catch (error) {
+    console.error("Error... returning.");
+    menu();
+  }
+};
+
+// delete number:
+
+const deleteNumber = async (name) => {
+  const remove = await knex(tableName).where({ name: name }).del();
 };
 
 const main = async () => {
