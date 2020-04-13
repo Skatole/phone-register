@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/Skatole/phone-register/issues"
   },
-  "homepage": "https://github.com/Skatole/phone-register#readme"
+  "homepage": "https://github.com/Skatole/phone-register#readme",
+  "dependencies": {
+    "readline-sync": "^1.4.10"
+  }
 }
