@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/Skatole/phone-register#readme",
   "dependencies": {
+    "knex": "^0.20.15",
     "readline-sync": "^1.4.10"
   }
 }

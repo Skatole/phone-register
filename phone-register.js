@@ -8,7 +8,7 @@ const knex = require("knex")({
   },
 });
 
-const readline = require('readline-sync');
+const readline = require("readline-sync");
 //  chosing options
 
 const menuList = [
@@ -19,45 +19,46 @@ const menuList = [
   "Delete an existing number",
   "Exit",
 ];
-
 const tableName = "phone_book";
+
 const menu = async () => {
   let name = "";
   let region = "";
   let number = 0;
   let question = "";
   const index = readline.keyInSelect(menuList, "What would you like to do?");
-  switch (true) {
+  switch (menuList[index]) {
     //  listing
-    case menuList[index] === menuList[0]:
+    case menuList[0]:
       await listAll();
       menu();
       break;
     //  searching:
-    case menuList[index] === menuList[1]:
+    case menuList[1]:
       name = readline.question("Name of the number owner: ");
       await search(name);
       menu();
       break;
     //  new number:
-    case menuList[index] === menuList[2]:
+    case menuList[2]:
       name = readline.question("Add a name:");
       region = readline.question("Add the region and service center:");
       number = readline.question("Add the number:");
       await insertNumber(name, region, number);
       menu();
       break;
+
     // update number:
-    case menuList[index] === menuList[3]:
+    case menuList[3]:
       name = readline.question("Name of the number owner:");
-      await search(name);
+      const updatedResult = await search(name);
       question = readline.keyInYN("Is this what you are looking for?:");
 
       if (question === true) {
         name = readline.question("Add a new name:");
         region = readline.question("Add a new region:");
         number = readline.question("Add a new number:");
-        await updateNumber(name, region, number);
+        await updateNumber(name, updatedResult);
         await search(name);
         menu();
       } else if (question === false) {
@@ -67,8 +68,9 @@ const menu = async () => {
         menu();
       }
       break;
+
     // delete number:
-    case menuList[index] === menuList[4]:
+    case menuList[4]:
       name = readline.question(
         "Which user you would like to delete? Enter name: "
       );
@@ -87,7 +89,7 @@ const menu = async () => {
         menu();
       }
       break;
-    case menuList[index] === menuList[5]:
+    case menuList[5]:
       process.exit();
   }
 };
@@ -96,7 +98,7 @@ const menu = async () => {
 
 // lists all of the numbers:
 const listAll = async () => {
-  const list = await knex.select().table(tableName);
+  const list = await knex(tableName).select();
   console.log(list);
 };
 
@@ -108,7 +110,8 @@ const search = async (nameSearch) => {
     .where({ name: nameSearch })
     .select()
     .table(tableName);
-    console.log(searchResault);
+  console.log(searchResault);
+  return searchResault;
 };
 
 // add a new number:
@@ -124,25 +127,12 @@ const insertNumber = async (name, region, number) => {
 
 // update a number:
 
-const updateNumber = async (name, region, number) => {
-  try {
-    const updateName = await knex(tableName)
-      .where({ name: name })
-      .update({ name: name });
-    const updateregion = await knex(tableName)
-      .where({ name: name })
-      .update({ region: region });
-    const updateNumber = await knex(tableName)
-      .where({ name: name })
-      .update({ phone_number: number });
-  } catch (error) {
-    console.error("Error... returning.");
-    menu();
-  }
+const updateNumber = async (name, record) => {
+    await knex(tableName).where({ name: record.name }).update({ name });
 };
 
 // delete number:
-
+  
 const deleteNumber = async (name) => {
   const remove = await knex(tableName).where({ name: name }).del();
 };
